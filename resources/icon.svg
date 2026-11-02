@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2B2D6E"/>
+      <stop offset="1" stop-color="#12132E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.42" cy="0.46" r="0.5">
+      <stop offset="0" stop-color="#7B7FE0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#7B7FE0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF4D6"/>
+      <stop offset="1" stop-color="#F2C97A"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS-style rounded square, 824px body inside 1024 canvas -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#glow)"/>
+  <!-- crescent -->
+  <path d="M461.1 212.1 A300 300 0 1 0 749.8 620.1 A250 250 0 1 1 461.1 212.1 Z" fill="url(#moon)"/>
+  <!-- markdown hash nestled in the crescent -->
+  <g transform="translate(15,-60)" stroke="#B9BCFF" stroke-width="30" stroke-linecap="round" fill="none">
+    <line x1="598" y1="470" x2="574" y2="650"/>
+    <line x1="668" y1="470" x2="644" y2="650"/>
+    <line x1="548" y1="524" x2="704" y2="524"/>
+    <line x1="538" y1="598" x2="694" y2="598"/>
+  </g>
+  <!-- stars -->
+  <g fill="#FFF4D6">
+    <path d="M736 268 l12 30 30 12 -30 12 -12 30 -12 -30 -30 -12 30 -12z"/>
+    <circle cx="790" cy="430" r="11" opacity="0.8"/>
+    <circle cx="680" cy="330" r="7" opacity="0.6"/>
+  </g>
+</svg>

@@ -1,0 +1,107 @@
+# Builds Luna MD for macOS, Windows and Linux and publishes a GitHub release.
+#
+#   npm version patch        # e.g. 0.1.0 → 0.1.1, makes a "v0.1.1" tag
+#   git push --follow-tags   # this workflow runs and publishes the release
+#
+# Each release has the apps (with fixed names, see electron-builder.yml) and a
+# SHA256SUMS.txt file the install scripts use to check every download.
+#
+# The Mac app is signed and notarized only if the Apple secrets are set
+# (docs/CODE_SIGNING.md). Without them everything still builds.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch: # run by hand from the Actions tab: builds, but doesn't publish
+
+permissions:
+  contents: write # to create the release
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            args: --mac
+          - name: Windows
+            os: windows-latest
+            args: --win
+          - name: Linux x64
+            os: ubuntu-latest
+            args: --linux --x64
+          - name: Linux arm64
+            os: ubuntu-24.04-arm
+            args: --linux --arm64
+            system_fpm: true # electron-builder's bundled .deb tool is x64-only
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install fpm (for .deb on arm64)
+        if: matrix.system_fpm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Package
+        run: npx electron-builder ${{ matrix.args }} --publish never
+        env:
+          # macOS signing (optional): "Developer ID Application" certificate as base64 .p12
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          # macOS notarization (optional)
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # No certificate secrets? Don't go looking for one (the Mac build just stays unsigned)
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' }}
+          USE_SYSTEM_FPM: ${{ matrix.system_fpm && 'true' || '' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: luna-md-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            dist/Luna-MD-*.dmg
+            dist/Luna-MD-*.zip
+            dist/Luna-MD-*.AppImage
+            dist/Luna-MD-*.deb
+
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: release
+        run: |
+          sha256sum Luna-MD-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

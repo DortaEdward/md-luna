@@ -1,0 +1,48 @@
+appId: com.edwarddorta.lunamd
+productName: Luna MD
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+# Release files have fixed names (no version number), so the install scripts can
+# always fetch the newest one from .../releases/latest/download/<name>
+win:
+  executableName: luna-md-desktop
+  # A plain zip, installed by install.ps1. No .exe installer to run.
+  target:
+    - target: zip
+      arch: [x64, arm64]
+  artifactName: Luna-MD-windows-${arch}.${ext}
+mac:
+  # Signing and notarization happen automatically when the credentials are present,
+  # and are skipped (with a warning) when they aren't. See docs/CODE_SIGNING.md.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: Luna MD keeps your notes in your Documents folder.
+  artifactName: Luna-MD-mac-${arch}.${ext}
+dmg:
+  artifactName: Luna-MD-mac-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  artifactName: Luna-MD-linux-${arch}.${ext}
+  maintainer: Edward Dorta
+  category: Utility
+npmRebuild: false

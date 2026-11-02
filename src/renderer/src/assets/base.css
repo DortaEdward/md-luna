@@ -1,0 +1,96 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: var(--color-white);
+  --bg-side: var(--color-zinc-100);
+  --bg-list: var(--color-zinc-50);
+  --fg: var(--color-zinc-900);
+  --fg-muted: var(--color-zinc-500);
+  --fg-faint: var(--color-zinc-400);
+  --line: rgb(0 0 0 / 0.08);
+  --accent: var(--color-indigo-500);
+  --accent-fg: var(--color-indigo-600);
+    --hover: rgb(0 0 0 / 0.05);
+  --hover-strong: rgb(0 0 0 / 0.1);
+  --selected: var(--color-blue-100);
+  --selected-fg: var(--color-blue-600);
+  color-scheme: light;
+}
+.dark {
+  --bg: var(--color-zinc-900);
+  --bg-side: var(--color-zinc-800);
+  --bg-list: color-mix(in oklab, var(--color-zinc-900), white 3%);
+  --fg: var(--color-zinc-100);
+  --fg-muted: var(--color-zinc-400);
+  --fg-faint: var(--color-zinc-500);
+  --line: rgb(255 255 255 / 0.08);
+  --accent: var(--color-indigo-400);
+  --accent-fg: var(--color-indigo-300);
+    --hover: rgb(255 255 255 / 0.06);
+  --hover-strong: rgb(255 255 255 / 0.12);
+  --selected: color-mix(in oklab, var(--color-blue-500) 25%, transparent);
+  --selected-fg: var(--color-blue-300);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-side: var(--bg-side);
+  --color-list: var(--bg-list);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+    --color-hover: var(--hover);
+  --color-hover-strong: var(--hover-strong);
+  --color-selected: var(--selected);
+  --color-selected-fg: var(--selected-fg);
+}
+
+html, body { background: transparent; color: var(--fg); }
+
+.sidebar {  
+  -webkit-app-region: drag;  
+}
+
+.drag    { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+
+.sidebar button, .sidebar input { -webkit-app-region: no-drag; }
+
+
+:root { --toolbar-h: 52px; }
+
+.toolbar {
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.toolbar button,
+.toolbar input,
+.toolbar a,
+.toolbar [role="button"] {
+  -webkit-app-region: no-drag;
+}
+
+.sidebar .toolbar { padding-left: 80px; }
+
+body.fullscreen .sidebar .toolbar { padding-left: 12px; }
+
+.prose-inherit {
+  --tw-prose-body: currentColor;
+  --tw-prose-headings: currentColor;
+  --tw-prose-bold: currentColor;
+  --tw-prose-links: currentColor;
+  --tw-prose-bullets: currentColor;
+  --tw-prose-quotes: currentColor;
+  --tw-prose-code: currentColor;
+}
