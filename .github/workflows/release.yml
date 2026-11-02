@@ -26,9 +26,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: macOS
-            os: macos-latest
-            args: --mac
+          # macOS is switched off for now. To turn it back on, remove the # from these 3 lines.
+          # - name: macOS
+          #   os: macos-latest
+          #   args: --mac
           - name: Windows
             os: windows-latest
             args: --win
@@ -103,7 +104,8 @@ jobs:
   release:
     name: Publish release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/')
+    # Publish whatever built, even if one platform failed (its files are just missing)
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
