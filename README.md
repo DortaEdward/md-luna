@@ -257,18 +257,18 @@ On Windows and Linux, use `Ctrl` in place of `⌘`.
 
 ## 📥 Install
 
-Paste one line into a terminal. The script downloads the latest release from this repo's [Releases page](https://github.com/dortaedward/luna-md-desktop/releases), **checks it against the release's SHA-256 checksums**, and installs it. There's no installer to double-click, and nothing comes from anywhere but GitHub. Read [`install.sh`](install.sh) or [`install.ps1`](install.ps1) first if you like; they're short.
+Paste one line into a terminal. The script downloads the latest release from this repo's [Releases page](https://github.com/DortaEdward/md-luna/releases), **checks it against the release's SHA-256 checksums**, and installs it. There's no installer to double-click, and nothing comes from anywhere but GitHub. Read [`install.sh`](https://github.com/DortaEdward/md-luna/blob/main/install.sh) or [`install.ps1`](https://github.com/DortaEdward/md-luna/blob/main/install.ps1) first if you like; they're short.
 
 **macOS and Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dortaedward/luna-md-desktop/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/DortaEdward/md-luna/main/install.sh | bash
 ```
 
 **Windows** (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/dortaedward/luna-md-desktop/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/DortaEdward/md-luna/main/install.ps1 | iex
 ```
 
 Run the same line again any time to **update**.
@@ -285,7 +285,7 @@ Uninstalling never touches your notes.
 <summary>More options</summary>
 
 - **A specific version:** `curl -fsSL …/install.sh | bash -s -- --version v0.1.0` (or `-Version v0.1.0` on Windows)
-- **Download by hand:** every release also has a `.dmg` (Mac), `.zip`, `.AppImage` and `.deb` on the [Releases page](https://github.com/dortaedward/luna-md-desktop/releases), along with `SHA256SUMS.txt` to check them against.
+- **Download by hand:** every release also has a `.dmg` (Mac), `.zip`, `.AppImage` and `.deb` on the [Releases page](https://github.com/DortaEdward/md-luna/releases), along with `SHA256SUMS.txt` to check them against.
 - **Linux:** AppImages need FUSE 2 on some distros (`sudo apt install libfuse2`).
 - **Unsigned Mac builds:** until the app is signed with an Apple Developer certificate ([docs/CODE_SIGNING.md](docs/CODE_SIGNING.md)), the install script signs it locally for your Mac so it opens normally. A `.dmg` downloaded in a browser will need right-click → **Open** the first time.
 
@@ -300,8 +300,8 @@ Uninstalling never touches your notes.
 ### Run it
 
 ```bash
-git clone https://github.com/dortaedward/luna-md-desktop.git
-cd luna-md-desktop
+git clone https://github.com/DortaEdward/md-luna.git
+cd md-luna
 npm install
 npm run dev
 ```

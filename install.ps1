@@ -6,7 +6,7 @@
   installer to run, and no admin rights needed.
 
   Install or update (PowerShell):
-    irm https://raw.githubusercontent.com/dortaedward/luna-md-desktop/main/install.ps1 | iex
+    irm https://raw.githubusercontent.com/DortaEdward/md-luna/main/install.ps1 | iex
 
   Options (run the downloaded script, or use the scriptblock form):
     .\install.ps1 -Version v0.1.0     install a specific release
@@ -22,7 +22,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue" # makes downloads much faster in Windows PowerShell
 
 # The GitHub repository releases come from ("owner/name")
-$Repo = if ($env:LUNA_REPO) { $env:LUNA_REPO } else { "dortaedward/luna-md-desktop" }
+$Repo = if ($env:LUNA_REPO) { $env:LUNA_REPO } else { "DortaEdward/md-luna" }
 
 $AppName     = "Luna MD"
 $ExeName     = "luna-md-desktop.exe"

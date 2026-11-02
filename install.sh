@@ -6,7 +6,7 @@
 # release's SHA256SUMS.txt, and installs it. Nothing to double-click, nothing
 # from anywhere but this project's GitHub Releases page.
 #
-#   curl -fsSL https://raw.githubusercontent.com/dortaedward/luna-md-desktop/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/DortaEdward/md-luna/main/install.sh | bash
 #
 # Options (after "bash -s --" when piping, e.g. "| bash -s -- --uninstall"):
 #   --version v0.1.0   install a specific release instead of the latest
@@ -17,7 +17,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # The GitHub repository releases come from ("owner/name")
 # ---------------------------------------------------------------------------
-REPO="${LUNA_REPO:-dortaedward/luna-md-desktop}"
+REPO="${LUNA_REPO:-DortaEdward/md-luna}"
 APP_NAME="Luna MD"
 VERSION="latest"
 
