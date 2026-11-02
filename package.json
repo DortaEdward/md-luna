@@ -4,7 +4,7 @@
   "description": "A markdown notes app",
   "main": "./out/main/index.js",
   "author": "dortaedward@github.com",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
