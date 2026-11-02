@@ -61,23 +61,39 @@ jobs:
         run: npm run build
 
       - name: Package
-        run: npx electron-builder ${{ matrix.args }} --publish never
+        shell: bash
+        run: |
+          # Only pass signing settings that are actually set: an empty CSC_LINK makes
+          # electron-builder look for a certificate file at "" and fail.
+          if [ -n "$MAC_CERTIFICATE" ]; then
+            export CSC_LINK="$MAC_CERTIFICATE" CSC_KEY_PASSWORD="$MAC_CERTIFICATE_PASSWORD"
+          else
+            export CSC_IDENTITY_AUTO_DISCOVERY=false # no certificate: build unsigned
+          fi
+          if [ -n "$NOTARY_APPLE_ID" ]; then
+            export APPLE_ID="$NOTARY_APPLE_ID" APPLE_APP_SPECIFIC_PASSWORD="$NOTARY_PASSWORD" APPLE_TEAM_ID="$NOTARY_TEAM_ID"
+          fi
+          if [ "$SYSTEM_FPM" = "true" ]; then
+            export USE_SYSTEM_FPM=true
+          fi
+          npx electron-builder ${{ matrix.args }} --publish never
         env:
           # macOS signing (optional): "Developer ID Application" certificate as base64 .p12
-          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          MAC_CERTIFICATE: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
           # macOS notarization (optional)
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # No certificate secrets? Don't go looking for one (the Mac build just stays unsigned)
-          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' }}
-          USE_SYSTEM_FPM: ${{ matrix.system_fpm && 'true' || '' }}
+          NOTARY_APPLE_ID: ${{ secrets.APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          NOTARY_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SYSTEM_FPM: ${{ matrix.system_fpm }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: luna-md-${{ matrix.os }}
           if-no-files-found: error
+          # Only needed until the release job picks them up (or for a day after a manual run);
+          # keeps artifact storage tiny, which matters on private repos (500 MB free)
+          retention-days: 1
           path: |
             dist/Luna-MD-*.dmg
             dist/Luna-MD-*.zip
