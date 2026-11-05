@@ -31,8 +31,6 @@ const OPTIONS: Record<string, "lineNumbers" | "relativeLineNumbers"> = {
 };
 type OptionSetting = { pref: "lineNumbers" | "relativeLineNumbers"; value: boolean };
 
-/** Event the editor page listens for to switch between Editor / Split / Preview */
-export const VIEW_MODE_EVENT = "view:mode";
 
 /* ---------- App commands (:Ex, :w, ...) ---------- */
 
@@ -44,8 +42,7 @@ function registerAppCommands(): void {
 
   const save = (): boolean => window.dispatchEvent(new Event("note:flush"));
   const close = (): void => useApp.getState().setActiveNote(null);
-  const setMode = (mode: string): boolean =>
-    window.dispatchEvent(new CustomEvent(VIEW_MODE_EVENT, { detail: mode }));
+  const setMode = (mode: "edit" | "split" | "preview"): void => useApp.getState().setViewMode(mode);
 
   // :set nu / :set rnu / :set rnu! / :set nonu ... drive the editor settings
   const boolOption = (name: string, alias: string, pref: "lineNumbers" | "relativeLineNumbers"): void =>
@@ -68,7 +65,33 @@ function registerAppCommands(): void {
     close();
   });
   Vim.defineEx("Explore", "Ex", () => openCommandPalette());
-  Vim.defineEx("Sidebar", "Sidebar", () => useApp.getState().toggleAegisSidebar());
+  // Panels. No argument toggles; "open"/"close" (or "show"/"hide", "on"/"off") set it.
+  //   :Sidebar   :Sidebar close   :Notes   :Notes open   :Focus
+  const panelCommand =
+    (set: (open: boolean) => void, toggle: () => void) =>
+    (_cm: unknown, params: { args?: string[] }): void => {
+      const arg = (params.args?.[0] ?? "").toLowerCase();
+      if (["open", "show", "on"].includes(arg)) set(true);
+      else if (["close", "hide", "off"].includes(arg)) set(false);
+      else toggle();
+    };
+  Vim.defineEx(
+    "Sidebar",
+    "Side",
+    panelCommand(
+      (open) => useApp.getState().setSidebarOpen(open),
+      () => useApp.getState().toggleSidebar()
+    )
+  );
+  Vim.defineEx(
+    "Notes",
+    "Notes",
+    panelCommand(
+      (open) => useApp.getState().setNotesOpen(open),
+      () => useApp.getState().toggleNotes()
+    )
+  );
+  Vim.defineEx("Focus", "Focus", () => useApp.getState().toggleFocus());
   Vim.defineEx("Editor", "Editor", () => setMode("edit"));
   Vim.defineEx("Split", "Split", () => setMode("split"));
   Vim.defineEx("Preview", "Preview", () => setMode("preview"));

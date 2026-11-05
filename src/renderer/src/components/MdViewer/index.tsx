@@ -4,12 +4,15 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { useApp } from "@renderer/stores/globalStore";
 import { stripFrontMatter } from "@renderer/lib/frontmatter";
-import { imageSrc, resolveRelative } from "@renderer/lib/paths";
+import { imageSize, imageSrc, resolveRelative } from "@renderer/lib/paths";
+import { usePreviewVim } from "./PreviewVim";
 
 type MdViewerProps = {
   content: string;
   documentName: string;
   notePath?: string;
+  /** True in Preview mode (no editor on screen) */
+  previewOnly?: boolean;
 };
 
 type TocItem = { id: string; text: string; level: number };
@@ -62,10 +65,24 @@ export function markdownComponents(notePath?: string) {
         <table {...props} />
       </div>
     ),
-    // Images saved next to the note (relative paths) load from the notes folder
-    img: ({ node: _node, src, alt, ...props }: Props<"img">) => (
-      <img {...props} alt={alt ?? ""} src={imageSrc(typeof src === "string" ? src : undefined, notePath)} loading="lazy" />
-    ),
+    // Images saved next to the note (relative paths) load from the notes folder.
+    // ![alt|300](x.png) or ![alt|300x200](x.png) or ![alt|50%](x.png) sets the size.
+    img: ({ node: _node, src, alt, style, ...props }: Props<"img">) => {
+      const size = imageSize(alt);
+      return (
+        <img
+          {...props}
+          alt={size.alt}
+          src={imageSrc(typeof src === "string" ? src : undefined, notePath)}
+          style={
+            size.width
+              ? { ...style, width: size.width, height: size.height ?? "auto", objectFit: size.height ? "contain" : undefined }
+              : style
+          }
+          loading="lazy"
+        />
+      );
+    },
   };
 }
 
@@ -169,12 +186,13 @@ function ContentsModal({
 
 /* ---------- Viewer ---------- */
 
-export default function MdViewer({ content, documentName, notePath }: MdViewerProps) {
+export default function MdViewer({ content, documentName, notePath, previewOnly = false }: MdViewerProps) {
   const setActiveNote = useApp((s) => s.setActiveNote);
   // Settings → Appearance → Preview width
   const readable = useApp((s) => s.prefs.previewWidth === "readable");
   const scrollRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
+  const vimBar = usePreviewVim(scrollRef, previewOnly); // Vim keys and : commands in the preview
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -311,6 +329,7 @@ export default function MdViewer({ content, documentName, notePath }: MdViewerPr
       {open && (
         <ContentsModal toc={toc} activeId={activeId} onSelect={goTo} onClose={() => setOpen(false)} />
       )}
+      {vimBar}
     </div>
   );
 }

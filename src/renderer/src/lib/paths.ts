@@ -22,6 +22,23 @@ export function toFileUrl(absPath: string): string {
   return 'luna-file://local' + (p.startsWith('/') ? '' : '/') + p.split('/').map(encodeURIComponent).join('/')
 }
 
+/**
+ * Image size from the alt text, the same way Obsidian does it:
+ *   ![|300](x.png)           300px wide
+ *   ![Sunset|300x200](x.png) 300 × 200, alt text "Sunset"
+ *   ![|50%](x.png)           half the page width
+ */
+export function imageSize(alt: string | undefined): {
+  alt: string
+  width?: string
+  height?: string
+} {
+  const m = (alt ?? '').match(/^(.*?)\s*\|\s*(\d{1,5})(%|px)?(?:\s*x\s*(\d{1,5})(?:px)?)?\s*$/)
+  if (!m) return { alt: alt ?? '' }
+  const [, text, w, unit, h] = m
+  return { alt: text, width: unit === '%' ? `${w}%` : `${w}px`, height: h && unit !== '%' ? `${h}px` : undefined }
+}
+
 /** Where an image in a note really points: web/data URLs as-is, relative paths into the notes folder */
 export function imageSrc(src: string | undefined, notePath: string | undefined): string | undefined {
   if (!src || /^[a-z][a-z0-9+.-]*:/i.test(src) || !notePath) return src

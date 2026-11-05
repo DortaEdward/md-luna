@@ -25,7 +25,7 @@ $ProgressPreference = "SilentlyContinue" # makes downloads much faster in Window
 $Repo = if ($env:LUNA_REPO) { $env:LUNA_REPO } else { "DortaEdward/md-luna" }
 
 $AppName     = "Luna MD"
-$ExeName     = "luna-md-desktop.exe"
+$ExeName     = "Luna MD.exe" # must match win.executableName in electron-builder.yml
 $InstallDir  = Join-Path $env:LOCALAPPDATA "Programs\Luna MD"
 $Shortcut    = Join-Path ([Environment]::GetFolderPath("Programs")) "Luna MD.lnk"
 $UninstallKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\LunaMD"

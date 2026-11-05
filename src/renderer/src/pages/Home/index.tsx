@@ -1,23 +1,10 @@
-import { Toolbar, NoDrag } from "@renderer/components/Toolbar";
 import { useApp } from "@renderer/stores/globalStore";
 import { useEffect, useRef, useState } from "react";
 import TextEditor from "@renderer/components/TextEditor";
 import MdViewer from "@renderer/components/MdViewer";
-import MarkdownHelp from "@renderer/components/MarkdownHelp";
 import { isInside } from "@renderer/lib/paths";
-import { VIEW_MODE_EVENT } from "@renderer/lib/vimConfig";
-import { ChevronLeft, ChevronRight, Share } from "lucide-react";
-import { goBack, goForward, useHistory } from "@renderer/stores/historyStore";
 
 type ViewMode = "edit" | "split" | "preview";
-
-const MODES: { value: ViewMode; label: string; title: string }[] = [
-  { value: "edit", label: "Editor", title: "Editor only" },
-  { value: "split", label: "Split", title: "Editor and preview" },
-  { value: "preview", label: "Preview", title: "Preview only" },
-];
-
-const toolbarBtn = "px-2 py-1 rounded text-muted hover:bg-hover hover:text-fg";
 
 function NoteEditor({ notePath, mode }: { notePath: string; mode: ViewMode }) {
   const bumpNotes = useApp((s) => s.bumpNotes);
@@ -115,139 +102,25 @@ function NoteEditor({ notePath, mode }: { notePath: string; mode: ViewMode }) {
 
       {showPreview && (
         <div className={`${mode === "split" ? "w-1/2" : "w-full"} min-w-0 min-h-0 flex flex-col`}>
-          <MdViewer content={liveText} documentName={documentName} notePath={notePath} />
+          <MdViewer content={liveText} documentName={documentName} notePath={notePath} previewOnly={mode === "preview"} />
         </div>
       )}
     </div>
   );
 }
 
-function ModeSwitcher({
-  mode,
-  onChange,
-  disabled,
-}: {
-  mode: ViewMode;
-  onChange: (m: ViewMode) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div
-      role="tablist"
-      className={`flex items-center rounded-md bg-hover p-0.5 text-sm ${
-        disabled ? "opacity-40 pointer-events-none" : ""
-      }`}
-    >
-      {MODES.map((m) => (
-        <button
-          key={m.value}
-          role="tab"
-          aria-selected={mode === m.value}
-          title={m.title}
-          onClick={() => onChange(m.value)}
-          className={`px-2.5 py-0.5 rounded ${
-            mode === m.value ? "bg-bg text-fg shadow-sm" : "text-muted hover:text-fg"
-          }`}
-        >
-          {m.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export default function Homepage() {
+export default function Homepage(): React.JSX.Element {
   const activeNote = useApp((s) => s.activeNote);
-  const canGoBack = useHistory((s) => s.index > 0);
-  const canGoForward = useHistory((s) => s.index < s.entries.length - 1);
-  // Settings → Editor → Open notes in (used when the app starts)
-  const [mode, setMode] = useState<ViewMode>(() => useApp.getState().prefs.defaultMode);
-  const [showHelp, setShowHelp] = useState(false);
-
-  // Cmd/Ctrl + 1/2/3 switch modes, Cmd/Ctrl + / toggles the Markdown reference
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (!(e.metaKey || e.ctrlKey)) return;
-
-      if (e.key === "/") {
-        e.preventDefault();
-        setShowHelp((v) => !v);
-        return;
-      }
-
-      const next = ({ "1": "edit", "2": "split", "3": "preview" } as const)[e.key];
-      if (next) {
-        e.preventDefault();
-        setMode(next);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  // Vim commands :Editor, :Split and :Preview
-  useEffect(() => {
-    function onMode(e: Event) {
-      const next = (e as CustomEvent<string>).detail;
-      if (next === "edit" || next === "split" || next === "preview") setMode(next);
-    }
-    window.addEventListener(VIEW_MODE_EVENT, onMode);
-    return () => window.removeEventListener(VIEW_MODE_EVENT, onMode);
-  }, []);
+  // Editor / Split / Preview lives in the store, so the title bar can switch it
+  const mode = useApp((s) => s.viewMode);
 
   return (
     <div className="flex-1 min-w-0 h-full flex flex-col">
-      <Toolbar className="w-full shrink-0 gap-1">
-        <NoDrag>
-          <button
-            onClick={goBack}
-            disabled={!canGoBack}
-            title="Back (⌘[)"
-            className={`${toolbarBtn} disabled:opacity-30 disabled:pointer-events-none`}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={goForward}
-            disabled={!canGoForward}
-            title="Forward (⌘])"
-            className={`${toolbarBtn} disabled:opacity-30 disabled:pointer-events-none`}
-          >
-            <ChevronRight size={18} />
-          </button>
-        </NoDrag>
-
-        <div className="flex-1" />
-
-        <NoDrag>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => activeNote && window.api.aegis.showExportMenu(activeNote)}
-              disabled={!activeNote}
-              title="Export as PDF or HTML"
-              className={`${toolbarBtn} disabled:opacity-30 disabled:pointer-events-none`}
-            >
-              <Share size={16} />
-            </button>
-            <button
-              onClick={() => setShowHelp(true)}
-              title="Markdown reference (⌘/)"
-              className="w-6 h-6 rounded-full text-sm text-muted border border-line hover:bg-hover hover:text-fg"
-            >
-              ?
-            </button>
-            <ModeSwitcher mode={mode} onChange={setMode} disabled={!activeNote} />
-          </div>
-        </NoDrag>
-      </Toolbar>
-
       {!activeNote ? (
         <div className="flex-1 flex items-center justify-center text-muted">Select a note</div>
       ) : (
         <NoteEditor key={activeNote} notePath={activeNote} mode={mode} />
       )}
-
-      <MarkdownHelp open={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }

@@ -3,12 +3,13 @@ import { Star } from 'lucide-react'
 import { useApp } from '@renderer/stores/globalStore'
 import type { Note } from '../../../../shared/types/shared'
 import { stripExt, useInlineRename } from '@renderer/hook/useInlineRename'
-import { Toolbar, NoDrag } from '@renderer/components/Toolbar'
+import { NoDrag } from '@renderer/components/Toolbar'
 
 import ResizeHandle from '@renderer/components/ResizeHandle'
 import { useResizableWidth } from '@renderer/hook/useResizableWidth'
 import { historyPathMoved } from '@renderer/stores/historyStore'
 import { applyPathMove } from '@renderer/lib/pathMoves'
+import { EASE } from '@renderer/lib/motion'
 
 export const NOTE_DRAG_TYPE = 'application/x-luna-note'
 
@@ -22,16 +23,6 @@ function parentName(p: string) {
 }
 
 /* ---------- Icons ---------- */
-
-function SidebarIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="16" rx="3" />
-      <path d="M9 4v16" />
-      <path d="M5.5 8h1.5M5.5 11h1.5" />
-    </svg>
-  )
-}
 
 function ComposeIcon() {
   return (
@@ -266,8 +257,6 @@ function NotesHeader({
   onNewNote,
   onImport,
   canCreate,
-  collapsed,
-  onToggle,
 }: {
   title: string
   canRename: boolean
@@ -277,15 +266,7 @@ function NotesHeader({
   onNewNote: () => void
   onImport: () => void
   canCreate: boolean
-  collapsed: boolean
-  onToggle: () => void
 }) {
-  const toggleButton = (
-    <button onClick={onToggle} title={collapsed ? 'Expand notes list' : 'Collapse notes list'} className={iconBtn}>
-      <SidebarIcon />
-    </button>
-  )
-
   const importButton = (
     <button onClick={onImport} disabled={!canCreate} title="Import files" className={iconBtn}>
       <ImportIcon />
@@ -298,21 +279,12 @@ function NotesHeader({
     </button>
   )
 
-  if (collapsed) {
-    return (
-      <div className="shrink-0 flex flex-col items-center gap-1 pt-3 no-drag">
-        {toggleButton}
-        {newNoteButton}
-        {importButton}
-      </div>
-    )
-  }
-
   return (
     <div className="shrink-0 bg-side">
-      <Toolbar className="w-full">
+      {/* Below the window's title bar now, so a normal row (not a window-drag area:
+          double-clicking the title renames the notebook instead of zooming the window) */}
+      <div className="h-10 w-full flex items-center px-3">
         <div className="flex items-center w-full gap-1">
-          <NoDrag>{toggleButton}</NoDrag>
           <HeaderTitle title={title} canRename={canRename} onRename={onRename} />
           <NoDrag>
             <div className="flex items-center">
@@ -321,7 +293,7 @@ function NotesHeader({
             </div>
           </NoDrag>
         </div>
-      </Toolbar>
+      </div>
 
       <div className="px-3 pb-2">
         <label className="flex items-center gap-1.5 bg-bg rounded-md border border-line px-2 py-1 text-muted focus-within:border-accent">
@@ -370,7 +342,8 @@ export default function AegisViewer() {
   const [notes, setNotes] = useState<Note[]>([])
   const [fsTick, setFsTick] = useState(0)
   const [query, setQuery] = useState('')
-  const [collapsed, setCollapsed] = useState(false)
+  // Opened and closed from the title bar, ⌘⌥2 or :Notes
+  const panelShown = useApp((s) => s.notesOpen)
   const [dragging, setDragging] = useState(false)
 
   const listWidth = useApp((s) => s.listWidth)
@@ -520,6 +493,17 @@ export default function AegisViewer() {
     if (paths.length) importNotes(paths)
   }
 
+  const headerProps = {
+    title,
+    canRename: canCreate,
+    onRename: renameAegis,
+    query,
+    onQueryChange: setQuery,
+    onNewNote: newNote,
+    onImport: () => importNotes(),
+    canCreate,
+  }
+
   /* ----- empty states ----- */
 
   let emptyMessage: string | null = null
@@ -535,24 +519,16 @@ export default function AegisViewer() {
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      style={{ width: collapsed ? 48 : resize.width }}
-      className={`relative h-full shrink-0 border-r border-line min-h-0 bg-side flex flex-col overflow-hidden ${resize.dragging ? '' : 'transition-[width] duration-200 ease-out'
-        }`}
+      style={{ width: panelShown ? resize.width : 0 }}
+      className={`relative h-full shrink-0 min-h-0 overflow-hidden ${resize.dragging ? '' : `transition-[width] ${EASE}`}`}
     >
-      <NotesHeader
-        title={title}
-        canRename={canCreate}
-        onRename={renameAegis}
-        query={query}
-        onQueryChange={setQuery}
-        onNewNote={newNote}
-        onImport={() => importNotes()}
-        canCreate={canCreate}
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
-      />
-
-      {!collapsed && (
+      {/* Slides like the sidebar: full-width panel pinned to the right edge of an animating box */}
+      <div
+        style={{ width: resize.width }}
+        inert={!panelShown}
+        className="absolute inset-y-0 right-0 flex flex-col bg-side border-r border-line"
+      >
+        <NotesHeader {...headerProps} />
         <div className="flex-1 min-h-0 overflow-y-auto">
           {emptyMessage && <div className="p-4 text-muted text-sm">{emptyMessage}</div>}
 
@@ -560,14 +536,14 @@ export default function AegisViewer() {
             <NoteItem key={note.path} note={note} showNotebook={!inAegis} />
           ))}
         </div>
-      )}
+        {panelShown && <ResizeHandle dragging={resize.dragging} {...resize.handleProps} />}
+      </div>
 
       {dragging && (
         <div className="absolute inset-0 z-20 m-1 rounded-lg border-2 border-dashed border-accent bg-accent/10 flex items-center justify-center pointer-events-none">
           <span className="text-sm font-medium text-accent-fg text-center px-2">Drop to import</span>
         </div>
       )}
-      {!collapsed && <ResizeHandle dragging={resize.dragging} {...resize.handleProps} />}
     </div>
   )
 }

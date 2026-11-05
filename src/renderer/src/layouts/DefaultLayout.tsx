@@ -1,6 +1,8 @@
 import AegisViewer from "@renderer/components/AegisViewer";
 import Sidebar from "@renderer/components/Sidebar";
 import SettingsModal from "@renderer/components/SettingsModal";
+import TitleBar from "@renderer/components/TitleBar";
+import CommandPalette from "@renderer/components/CommandPalette";
 import { ToastContainer } from "@renderer/components/ToastContainer";
 import { useApplyPrefs } from "@renderer/hook/usePrefs";
 import { useTheme } from "@renderer/hook/useTheme";
@@ -81,14 +83,17 @@ export default function DefaultLayout() {
     }, []);
 
     return (
-        <div className="w-screen h-screen flex overflow-hidden bg-bg text-fg relative">
-            <div className="flex-1 flex">
+        <div className="w-screen h-screen flex flex-col overflow-hidden bg-bg text-fg relative">
+            {/* One title bar across the window; the panels start below it */}
+            <TitleBar />
+            <div className="flex-1 min-h-0 flex">
                 <Sidebar />
                 <AegisViewer />
                 <main className="flex-1 min-w-0 overflow-y-auto relative bg-list">
                     <Outlet />
                 </main>
             </div>
+            <CommandPalette />
             <ToastContainer />
             <SettingsModal />
         </div>

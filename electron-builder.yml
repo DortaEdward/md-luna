@@ -14,7 +14,7 @@ asarUnpack:
 # Release files have fixed names (no version number), so the install scripts can
 # always fetch the newest one from .../releases/latest/download/<name>
 win:
-  executableName: luna-md-desktop
+  executableName: "Luna MD"
   # A plain zip, installed by install.ps1. No .exe installer to run.
   target:
     - target: zip

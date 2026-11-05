@@ -57,6 +57,9 @@ const SECTIONS: Section[] = [
       { label: "Link to a heading", code: "[Jump to section](#section)", note: "Lowercase, spaces become dashes." },
       { label: "Link to another note", code: "[Other note](Other%20note.md)", note: "Use %20 for spaces in the file name." },
       { label: "Image", code: "![Description](https://example.com/photo.png)", render: false },
+      { label: "Image, 300px wide", code: "![Description|300](photo.png)", render: false },
+      { label: "Image, exact size", code: "![Description|300x200](photo.png)", render: false },
+      { label: "Image, half width", code: "![Description|50%](photo.png)", render: false },
     ],
   },
   {

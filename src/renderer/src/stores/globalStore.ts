@@ -7,6 +7,9 @@ import { flattenAegis } from '../../../shared/tree'
 
 export type Theme = 'system' | 'light' | 'dark'
 
+/** How a note is shown: editor only, editor + preview, or preview only */
+export type ViewMode = 'edit' | 'split' | 'preview'
+
 export type Prefs = {
   editorFontSize: number
   editorFont: 'mono' | 'sans' | 'serif'
@@ -66,8 +69,23 @@ interface AppState {
   /** Open every parent of `path` so it's visible in the sidebar */
   revealAegis: (path: string) => void
 
-  showAegisSidebar: boolean
-  toggleAegisSidebar: () => void
+  /* Panels: the sidebar and the notes list open and close independently */
+  sidebarOpen: boolean
+  notesOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  setNotesOpen: (open: boolean) => void
+  toggleSidebar: () => void
+  toggleNotes: () => void
+  /** Focus: hide both panels; turning it off brings back what was open before */
+  toggleFocus: () => void
+  /** What was open when focus started (so it can be restored) */
+  beforeFocus: { sidebarOpen: boolean; notesOpen: boolean } | null
+
+  viewMode: ViewMode
+  setViewMode: (mode: ViewMode) => void
+
+  helpOpen: boolean
+  setHelpOpen: (open: boolean) => void
 
   view: NoteView
   setView: (view: NoteView) => void
@@ -149,8 +167,34 @@ export const useApp = create<AppState>()(
         }),
 
       /* ----- layout ----- */
-      showAegisSidebar: true,
-      toggleAegisSidebar: () => set((s) => ({ showAegisSidebar: !s.showAegisSidebar })),
+      sidebarOpen: true,
+      notesOpen: true,
+      beforeFocus: null,
+      setSidebarOpen: (open) => set({ sidebarOpen: open, beforeFocus: null }),
+      setNotesOpen: (open) => set({ notesOpen: open, beforeFocus: null }),
+      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen, beforeFocus: null })),
+      toggleNotes: () => set((s) => ({ notesOpen: !s.notesOpen, beforeFocus: null })),
+      toggleFocus: () =>
+        set((s) => {
+          const anyOpen = s.sidebarOpen || s.notesOpen
+          if (anyOpen) {
+            // Into focus: remember what was open
+            return {
+              beforeFocus: { sidebarOpen: s.sidebarOpen, notesOpen: s.notesOpen },
+              sidebarOpen: false,
+              notesOpen: false
+            }
+          }
+          // Out of focus: restore (or open both if there's nothing to restore)
+          const back = s.beforeFocus ?? { sidebarOpen: true, notesOpen: true }
+          return { ...back, beforeFocus: null }
+        }),
+
+      viewMode: 'edit', // replaced with Settings → "Open notes in" right after start-up (below)
+      setViewMode: (mode) => set({ viewMode: mode }),
+
+      helpOpen: false,
+      setHelpOpen: (open) => set({ helpOpen: open }),
       sidebarWidth: 256,
       listWidth: 224,
       setSidebarWidth: (w) => set({ sidebarWidth: w }),
@@ -200,6 +244,8 @@ export const useApp = create<AppState>()(
         prefs: s.prefs,
         sidebarWidth: s.sidebarWidth,
         expandedAegis: s.expandedAegis,
+        sidebarOpen: s.sidebarOpen,
+        notesOpen: s.notesOpen,
         listWidth: s.listWidth
       }),
       // Fill in any preferences added in a later version
@@ -210,3 +256,6 @@ export const useApp = create<AppState>()(
     }
   )
 )
+
+// Open notes in the view chosen in Settings → Editor → "Open notes in"
+useApp.setState({ viewMode: useApp.getState().prefs.defaultMode })

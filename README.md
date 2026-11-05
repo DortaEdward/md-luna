@@ -64,7 +64,7 @@ I learned a *lot* doing it: how Electron splits work between the main process an
 - Light, dark, or follow the system
 - Choose the editor font (mono, sans, serif) and size, and the preview width
 - Native macOS styling: inset traffic lights, translucent sidebar
-- Collapsible, resizable sidebar and notes list
+- **Sidebar and notes list open and close independently** from the title bar, plus a **focus** button that hides both and brings back whatever was open. Panels slide away completely and are resizable
 
 ---
 
@@ -212,6 +212,8 @@ set nu rnu
 
 Changes apply as you type. If a line can't be used, the box tells you which line and why.
 
+**In Preview mode** the editor is hidden, so the preview has Vim keys of its own: `:` opens a command line that runs the same commands (`:Split`, `:Editor`, `:w`, `:Ex`…), `i` jumps back into the editor, and `j`/`k`, `gg`/`G` and `Ctrl-d`/`Ctrl-u` scroll.
+
 **Supported:**
 - `vim.keymap.set` / `vim.keymap.del` in modes `n`, `i`, `v`, `x` and `o`, with `{ remap = true }`
 - `map`, `noremap`, `nmap`, `nnoremap`, `imap`, `inoremap`, `vmap`, `xmap` and their `unmap` forms
@@ -229,7 +231,9 @@ Changes apply as you type. If a line can't be used, the box tells you which line
 | `:q` | Close the note |
 | `:wq` / `:x` | Save and close |
 | `:Ex` / `:Explore` | Open the note finder (the closest thing to netrw) |
-| `:Sidebar` | Show or hide the sidebar |
+| `:Sidebar` · `:Sidebar open` / `close` | Toggle the sidebar, or open / close it |
+| `:Notes` · `:Notes open` / `close` | Toggle the notes list, or open / close it |
+| `:Focus` | Hide both panels; run again to bring them back |
 | `:Editor` · `:Split` · `:Preview` | Switch the view |
 | `:Favorite` | Favorite or unfavorite the current note |
 | `:Settings` | Open settings |
@@ -245,6 +249,8 @@ Changes apply as you type. If a line can't be used, the box tells you which line
 | `⌘K` | Search notebooks and notes |
 | `⌘[` · `⌘]` | Back · forward |
 | `⌘1` · `⌘2` · `⌘3` | Editor · Split · Preview |
+| `⌘⌥1` · `⌘⌥2` | Show / hide the sidebar · the notes list |
+| `⌘\` | Focus: hide both panels, press again to bring them back |
 | `⌘⇧O` | Jump to a section (in the preview) |
 | `⌘/` | Markdown reference |
 | `⌘,` | Settings |

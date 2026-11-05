@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, drawSelection, keymap } from "@codemirror/view";
 import { Compartment, EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { vim } from "@replit/codemirror-vim";
 import { applyVimConfig, vimMappings } from "@renderer/lib/vimConfig";
 import { lineNumberGutter } from "@renderer/lib/lineNumbers";
+import { getActiveEditor, setActiveEditor } from "@renderer/lib/activeEditor";
 import { languages } from "@codemirror/language-data";
 import {
   history,
@@ -87,6 +88,9 @@ export default function TextEditor({ initialValue, onChange, className, onImage 
         extensions: [
           vimSlot.current.of(vimExt(vimMode)),
           numbersSlot.current.of(lineNumberGutter(showNumbers, relativeNumbers)),
+          // Draw the selection ourselves. Vim mode hides the browser's own highlight,
+          // so without this, visual-mode (v / V) selections were invisible.
+          drawSelection(),
           EditorView.lineWrapping,
           // Paste or drop images: saved next to the note and linked at the cursor / drop point
           EditorView.domEventHandlers({
@@ -127,8 +131,10 @@ export default function TextEditor({ initialValue, onChange, className, onImage 
     });
 
     viewRef.current = view;
+    setActiveEditor(view); // lets the preview run Vim commands while the editor is hidden
     view.focus();
     return () => {
+      if (getActiveEditor() === view) setActiveEditor(null);
       view.destroy();
       viewRef.current = null;
     };

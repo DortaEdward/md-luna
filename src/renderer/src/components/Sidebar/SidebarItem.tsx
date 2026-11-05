@@ -8,7 +8,7 @@ import { AEGIS_DRAG_TYPE, dropInto, isMoveDrag } from "./drag";
 
 const INDENT = 14; // px per nesting level
 
-export function SidebarItem({ aegis, collapsed = false }: { aegis: Aegis; collapsed?: boolean }): React.JSX.Element {
+export function SidebarItem({ aegis }: { aegis: Aegis }): React.JSX.Element {
     const isActive = useApp((s) => s.view === "aegis" && s.activeAegis === aegis.path);
     const isExpanded = useApp((s) => s.expandedAegis.includes(aegis.path));
     const setActiveAegis = useApp((s) => s.setActiveAegis);
@@ -66,22 +66,6 @@ export function SidebarItem({ aegis, collapsed = false }: { aegis: Aegis; collap
     function onContextMenu(e: React.MouseEvent): void {
         e.preventDefault();
         window.api.aegis.showSidebarItemMenu(aegis.path);
-    }
-
-    if (collapsed) {
-        return (
-            <button
-                {...dropHandlers}
-                title={`${aegis.trail} (${aegis.noteCount})`}
-                onClick={() => setActiveAegis(aegis.path)}
-                onContextMenu={onContextMenu}
-                className={`p-1.5 rounded-md ${
-                    isDropTarget || isActive ? stateClass : "text-muted hover:bg-hover hover:text-fg"
-                }`}
-            >
-                <Book size={18} />
-            </button>
-        );
     }
 
     return (
